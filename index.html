@@ -114,6 +114,15 @@
             display: block;
         }
 
+        .warning-text {
+            color: #856404;
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+
         /* Patient Interface - Nice looking */
         .patient-view {
             display: none;
@@ -182,11 +191,22 @@
             border-left: 4px solid #667eea;
         }
 
+        .reminder-card.completed {
+            opacity: 0.6;
+            background: linear-gradient(135deg, #e8e8e8 0%, #d0d0d0 100%);
+            border-left-color: #999;
+        }
+
         .reminder-card .time {
             color: #667eea;
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 8px;
+        }
+
+        .reminder-card.completed .time {
+            color: #999;
+            text-decoration: line-through;
         }
 
         .reminder-card .message {
@@ -212,6 +232,17 @@
         .status-disabled {
             background: #f8d7da;
             color: #721c24;
+        }
+
+        .complete-badge {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 20px auto;
+            display: inline-block;
         }
 
         .hidden {
@@ -245,6 +276,10 @@
             <div id="remindersList" style="margin: 20px 0;"></div>
 
             <button class="btn" onclick="generateQR()">Generate QR Code</button>
+            
+            <div class="warning-text" style="margin-top: 15px;">
+                ℹ️ All data is embedded in the QR code. Keep reminders under 10-15 for best results.
+            </div>
         </div>
 
         <!-- QR Code Display -->
@@ -252,6 +287,9 @@
             <h3>Patient QR Code</h3>
             <p>Patient scans this to enable notifications</p>
             <div id="qrCanvas"></div>
+            <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                Data will auto-delete from patient's device after all reminders complete
+            </p>
             <button class="btn btn-secondary" onclick="resetForm()">Create Another</button>
         </div>
 
@@ -275,6 +313,13 @@
                         <span id="notificationStatus" class="status-badge status-disabled">Notifications Disabled</span>
                     </div>
 
+                    <div id="completionBadge" class="hidden" style="text-align: center; margin-bottom: 20px;">
+                        <span class="complete-badge">✓ All Reminders Complete</span>
+                        <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                            Data will be automatically deleted
+                        </p>
+                    </div>
+
                     <h3 style="margin-bottom: 15px; color: #333;">Your Reminders</h3>
                     <div id="patientRemindersList" class="reminders-list"></div>
                 </div>
@@ -288,14 +333,73 @@
     <script>
         let reminders = [];
         let patientData = null;
+        let db;
+
+        // Initialize IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('PatientRemindersDB', 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('reminders')) {
+                        db.createObjectStore('reminders', { keyPath: 'id' });
+                    }
+                };
+            });
+        }
+
+        // Save to IndexedDB
+        function saveToIndexedDB(data) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['reminders'], 'readwrite');
+                const store = transaction.objectStore('reminders');
+                const request = store.put(data);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Load from IndexedDB
+        function loadFromIndexedDB(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['reminders'], 'readonly');
+                const store = transaction.objectStore('reminders');
+                const request = store.get(id);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Delete from IndexedDB
+        function deleteFromIndexedDB(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['reminders'], 'readwrite');
+                const store = transaction.objectStore('reminders');
+                const request = store.delete(id);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
 
         // Check if coming from QR code
-        window.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const patientId = urlParams.get('patient');
+        window.addEventListener('DOMContentLoaded', async function() {
+            await initDB();
             
-            if (patientId) {
-                loadPatientView(patientId);
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            
+            if (encodedData) {
+                loadPatientView(encodedData);
             }
         });
 
@@ -308,7 +412,7 @@
                 return;
             }
 
-            reminders.push({ message, time });
+            reminders.push({ message, time, completed: false });
             
             document.getElementById('reminderMessage').value = '';
             document.getElementById('reminderTime').value = '';
@@ -340,7 +444,7 @@
                 return;
             }
 
-            // Store patient data
+            // Create patient data object
             const patientId = 'patient_' + Date.now();
             patientData = {
                 id: patientId,
@@ -348,11 +452,18 @@
                 reminders: reminders
             };
 
-            // Save to localStorage (in real app, this would be a database)
-            localStorage.setItem(patientId, JSON.stringify(patientData));
+            // Encode data to base64 for URL
+            const jsonString = JSON.stringify(patientData);
+            const encodedData = btoa(encodeURIComponent(jsonString));
 
-            // Generate QR code
-            const qrUrl = 'https://iuridg.github.io/Patient_reminder/hospital-reminder.html?patient=' + patientId;
+            // Check size
+            if (encodedData.length > 2500) {
+                alert('Too much data! Please reduce the number of reminders or make messages shorter.');
+                return;
+            }
+
+            // Generate QR code with embedded data
+            const qrUrl = 'https://iuridg.github.io/Patient_reminder/hospital-reminder.html?data=' + encodedData;
             
             document.getElementById('staffSection').style.display = 'none';
             document.getElementById('qrCode').style.display = 'block';
@@ -377,25 +488,32 @@
             document.getElementById('staffSection').style.display = 'block';
         }
 
-        function loadPatientView(patientId) {
-            const data = localStorage.getItem(patientId);
-            if (!data) {
-                alert('Invalid QR code');
-                return;
-            }
+        async function loadPatientView(encodedData) {
+            try {
+                // Decode data from URL
+                const jsonString = decodeURIComponent(atob(encodedData));
+                patientData = JSON.parse(jsonString);
 
-            patientData = JSON.parse(data);
-            
-            document.getElementById('staffSection').style.display = 'none';
-            document.getElementById('patientSection').style.display = 'block';
-            document.getElementById('patientNameDisplay').textContent = patientData.name;
-            
-            displayPatientReminders();
-            
-            // Check if notifications are already enabled
-            if (Notification.permission === 'granted') {
-                showRemindersSection();
-                scheduleAllNotifications();
+                // Save to IndexedDB
+                await saveToIndexedDB(patientData);
+                
+                document.getElementById('staffSection').style.display = 'none';
+                document.getElementById('patientSection').style.display = 'block';
+                document.getElementById('patientNameDisplay').textContent = patientData.name;
+                
+                displayPatientReminders();
+                
+                // Check if notifications are already enabled
+                if (Notification.permission === 'granted') {
+                    showRemindersSection();
+                    scheduleAllNotifications();
+                }
+
+                // Check for completion periodically
+                setInterval(checkCompletion, 60000); // Check every minute
+            } catch (error) {
+                alert('Invalid QR code data');
+                console.error(error);
             }
         }
 
@@ -403,12 +521,15 @@
             const list = document.getElementById('patientRemindersList');
             list.innerHTML = patientData.reminders
                 .sort((a, b) => new Date(a.time) - new Date(b.time))
-                .map(r => `
-                    <div class="reminder-card">
-                        <div class="time">📅 ${new Date(r.time).toLocaleString()}</div>
-                        <div class="message">${r.message}</div>
-                    </div>
-                `).join('');
+                .map(r => {
+                    const isPast = new Date(r.time) < new Date();
+                    return `
+                        <div class="reminder-card ${r.completed || isPast ? 'completed' : ''}">
+                            <div class="time">📅 ${new Date(r.time).toLocaleString()}</div>
+                            <div class="message">${r.message}</div>
+                        </div>
+                    `;
+                }).join('');
         }
 
         async function enableNotifications() {
@@ -442,21 +563,45 @@
         }
 
         function scheduleAllNotifications() {
-            patientData.reminders.forEach(reminder => {
+            patientData.reminders.forEach((reminder, index) => {
                 const reminderTime = new Date(reminder.time).getTime();
                 const now = Date.now();
                 const delay = reminderTime - now;
 
-                if (delay > 0) {
-                    setTimeout(() => {
+                if (delay > 0 && !reminder.completed) {
+                    setTimeout(async () => {
                         new Notification('Care Reminder 💊', {
                             body: reminder.message,
                             icon: '🔔',
                             requireInteraction: true
                         });
+                        
+                        // Mark as completed
+                        patientData.reminders[index].completed = true;
+                        await saveToIndexedDB(patientData);
+                        displayPatientReminders();
+                        checkCompletion();
                     }, delay);
                 }
             });
+        }
+
+        async function checkCompletion() {
+            const now = Date.now();
+            const allComplete = patientData.reminders.every(r => 
+                r.completed || new Date(r.time).getTime() < now
+            );
+
+            if (allComplete) {
+                document.getElementById('completionBadge').classList.remove('hidden');
+                
+                // Auto-delete after 5 seconds
+                setTimeout(async () => {
+                    await deleteFromIndexedDB(patientData.id);
+                    alert('All reminders complete! Data has been deleted from your device.');
+                    window.location.href = window.location.origin + window.location.pathname;
+                }, 5000);
+            }
         }
     </script>
 </body>
