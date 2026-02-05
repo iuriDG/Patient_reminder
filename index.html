@@ -463,7 +463,7 @@
             }
 
             // Generate QR code with embedded data
-            const qrUrl = 'https://iuriDG.github.io/Patient_reminder/index.html?data=' + encodedData;
+            const qrUrl = window.location.origin + window.location.pathname + '?data=' + encodedData;
 
             
             document.getElementById('staffSection').style.display = 'none';
