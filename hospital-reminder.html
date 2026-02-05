@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Discharge Reminders</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Staff Form - Simple */
+        .staff-form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .staff-form h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .reminder-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        #qrCode {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            display: none;
+        }
+
+        #qrCode canvas {
+            margin: 20px auto;
+            display: block;
+        }
+
+        /* Patient Interface - Nice looking */
+        .patient-view {
+            display: none;
+        }
+
+        .patient-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .patient-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .patient-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .patient-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .welcome-section p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .notification-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .reminders-list {
+            margin-top: 30px;
+        }
+
+        .reminder-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .reminder-card .time {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .reminder-card .message {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Staff Form -->
+        <div id="staffSection" class="staff-form">
+            <h2>Create Patient Reminders</h2>
+            
+            <div class="form-group">
+                <label>Patient Name</label>
+                <input type="text" id="patientName" placeholder="John Doe">
+            </div>
+
+            <div class="form-group">
+                <label>Reminder Message</label>
+                <textarea id="reminderMessage" placeholder="Take medication with food"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Schedule Date & Time</label>
+                <input type="datetime-local" id="reminderTime">
+            </div>
+
+            <button class="btn btn-small btn-secondary" onclick="addReminder()">Add Reminder</button>
+
+            <div id="remindersList" style="margin: 20px 0;"></div>
+
+            <button class="btn" onclick="generateQR()">Generate QR Code</button>
+        </div>
+
+        <!-- QR Code Display -->
+        <div id="qrCode">
+            <h3>Patient QR Code</h3>
+            <p>Patient scans this to enable notifications</p>
+            <div id="qrCanvas"></div>
+            <button class="btn btn-secondary" onclick="resetForm()">Create Another</button>
+        </div>
+
+        <!-- Patient View -->
+        <div id="patientSection" class="patient-view">
+            <div class="patient-card">
+                <div class="patient-header">
+                    <h1>Care Reminders</h1>
+                    <p id="patientNameDisplay"></p>
+                </div>
+
+                <div id="welcomeSection" class="welcome-section">
+                    <div class="notification-icon">🔔</div>
+                    <h2>Enable Notifications</h2>
+                    <p>Get timely reminders about your medications, appointments, and care instructions.</p>
+                    <button class="btn" onclick="enableNotifications()">Enable Reminders</button>
+                </div>
+
+                <div id="remindersSection" class="hidden">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <span id="notificationStatus" class="status-badge status-disabled">Notifications Disabled</span>
+                    </div>
+
+                    <h3 style="margin-bottom: 15px; color: #333;">Your Reminders</h3>
+                    <div id="patientRemindersList" class="reminders-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        let reminders = [];
+        let patientData = null;
+
+        // Check if coming from QR code
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const patientId = urlParams.get('patient');
+            
+            if (patientId) {
+                loadPatientView(patientId);
+            }
+        });
+
+        function addReminder() {
+            const message = document.getElementById('reminderMessage').value;
+            const time = document.getElementById('reminderTime').value;
+
+            if (!message || !time) {
+                alert('Please fill in both message and time');
+                return;
+            }
+
+            reminders.push({ message, time });
+            
+            document.getElementById('reminderMessage').value = '';
+            document.getElementById('reminderTime').value = '';
+            
+            updateRemindersList();
+        }
+
+        function updateRemindersList() {
+            const list = document.getElementById('remindersList');
+            list.innerHTML = reminders.map((r, i) => `
+                <div class="reminder-item">
+                    <strong>${new Date(r.time).toLocaleString()}</strong><br>
+                    ${r.message}
+                    <button class="btn btn-small btn-secondary" onclick="removeReminder(${i})" style="float: right; padding: 4px 8px;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeReminder(index) {
+            reminders.splice(index, 1);
+            updateRemindersList();
+        }
+
+        function generateQR() {
+            const name = document.getElementById('patientName').value;
+            
+            if (!name || reminders.length === 0) {
+                alert('Please enter patient name and add at least one reminder');
+                return;
+            }
+
+            // Store patient data
+            const patientId = 'patient_' + Date.now();
+            patientData = {
+                id: patientId,
+                name: name,
+                reminders: reminders
+            };
+
+            // Save to localStorage (in real app, this would be a database)
+            localStorage.setItem(patientId, JSON.stringify(patientData));
+
+            // Generate QR code
+            const qrUrl = window.location.origin + window.location.pathname + '?patient=' + patientId;
+            
+            document.getElementById('staffSection').style.display = 'none';
+            document.getElementById('qrCode').style.display = 'block';
+            
+            const qrCanvas = document.getElementById('qrCanvas');
+            qrCanvas.innerHTML = '';
+            
+            new QRCode(qrCanvas, {
+                text: qrUrl,
+                width: 256,
+                height: 256,
+                colorDark: "#667eea",
+                colorLight: "#ffffff",
+            });
+        }
+
+        function resetForm() {
+            reminders = [];
+            document.getElementById('patientName').value = '';
+            updateRemindersList();
+            document.getElementById('qrCode').style.display = 'none';
+            document.getElementById('staffSection').style.display = 'block';
+        }
+
+        function loadPatientView(patientId) {
+            const data = localStorage.getItem(patientId);
+            if (!data) {
+                alert('Invalid QR code');
+                return;
+            }
+
+            patientData = JSON.parse(data);
+            
+            document.getElementById('staffSection').style.display = 'none';
+            document.getElementById('patientSection').style.display = 'block';
+            document.getElementById('patientNameDisplay').textContent = patientData.name;
+            
+            displayPatientReminders();
+            
+            // Check if notifications are already enabled
+            if (Notification.permission === 'granted') {
+                showRemindersSection();
+                scheduleAllNotifications();
+            }
+        }
+
+        function displayPatientReminders() {
+            const list = document.getElementById('patientRemindersList');
+            list.innerHTML = patientData.reminders
+                .sort((a, b) => new Date(a.time) - new Date(b.time))
+                .map(r => `
+                    <div class="reminder-card">
+                        <div class="time">📅 ${new Date(r.time).toLocaleString()}</div>
+                        <div class="message">${r.message}</div>
+                    </div>
+                `).join('');
+        }
+
+        async function enableNotifications() {
+            if (!('Notification' in window)) {
+                alert('This browser does not support notifications');
+                return;
+            }
+
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
+                showRemindersSection();
+                scheduleAllNotifications();
+                
+                // Show confirmation notification
+                new Notification('Reminders Enabled! 🎉', {
+                    body: 'You will receive notifications for your care reminders.',
+                    icon: '🔔'
+                });
+            } else {
+                alert('Please enable notifications to receive reminders');
+            }
+        }
+
+        function showRemindersSection() {
+            document.getElementById('welcomeSection').classList.add('hidden');
+            document.getElementById('remindersSection').classList.remove('hidden');
+            document.getElementById('notificationStatus').classList.remove('status-disabled');
+            document.getElementById('notificationStatus').classList.add('status-enabled');
+            document.getElementById('notificationStatus').textContent = 'Notifications Enabled ✓';
+        }
+
+        function scheduleAllNotifications() {
+            patientData.reminders.forEach(reminder => {
+                const reminderTime = new Date(reminder.time).getTime();
+                const now = Date.now();
+                const delay = reminderTime - now;
+
+                if (delay > 0) {
+                    setTimeout(() => {
+                        new Notification('Care Reminder 💊', {
+                            body: reminder.message,
+                            icon: '🔔',
+                            requireInteraction: true
+                        });
+                    }, delay);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
