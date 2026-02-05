@@ -352,7 +352,7 @@
             localStorage.setItem(patientId, JSON.stringify(patientData));
 
             // Generate QR code
-            const qrUrl = window.location.origin + window.location.pathname + '?patient=' + patientId;
+            const qrUrl = 'https://iuridg.github.io/Patient_reminder/hospital-reminder.html?patient=' + patientId;
             
             document.getElementById('staffSection').style.display = 'none';
             document.getElementById('qrCode').style.display = 'block';
