@@ -434,15 +434,27 @@
                 return;
             }
 
-            list.innerHTML = reminders.map((r, i) => `
-                <div class="reminder-item">
-                    <div class="reminder-info">
-                        <div class="reminder-time">${new Date(r.time).toLocaleString()}</div>
-                        <div class="reminder-message">${r.message}</div>
+            list.innerHTML = reminders.map((r, i) => {
+                let repeatBadge = '';
+                if (r.repeatType && r.repeatType !== 'none') {
+                    repeatBadge = `<span class="repeat-badge">${t('repeats')}: ${t('repeat' + r.repeatType.charAt(0).toUpperCase() + r.repeatType.slice(1))}</span>`;
+                }
+
+                let endDateText = '';
+                if (r.endDate) {
+                    endDateText = `<br><small style="color: #666;">${t('until')} ${new Date(r.endDate).toLocaleDateString()}</small>`;
+                }
+
+                return `
+                    <div class="reminder-item">
+                        <div class="reminder-info">
+                            <div class="reminder-time">${new Date(r.time).toLocaleString()} ${repeatBadge}</div>
+                            <div class="reminder-message">${r.message}${endDateText}</div>
+                        </div>
+                        <button class="btn btn-small btn-secondary" onclick="removeReminder(${i})">${t('remove')}</button>
                     </div>
-                    <button class="btn btn-small btn-secondary" onclick="removeReminder(${i})">Remove</button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function removeReminder(index) {
@@ -454,12 +466,12 @@
             const name = document.getElementById('patientName').value.trim();
 
             if (!name) {
-                alert('Please enter patient name');
+                alert(t('enterName'));
                 return;
             }
 
             if (reminders.length === 0) {
-                alert('Please add at least one reminder');
+                alert(t('addOneReminder'));
                 return;
             }
 
