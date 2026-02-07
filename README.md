@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="mobile-app/assets/icon.png" alt="Care Reminders Icon" width="200"/>
+</p>
+
 # Care Reminders
 
 A medication reminder system for elderly and Alzheimer's patients. Healthcare staff create reminders via web interface, patients receive notifications on their mobile device.
