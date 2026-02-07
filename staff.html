@@ -16,6 +16,11 @@
             background: #f5f8fa;
             min-height: 100vh;
             padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        body.dark {
+            background: #1a1a1a;
         }
 
         .container {
@@ -29,6 +34,12 @@
             border-radius: 4px;
             border: 1px solid #e1e8ed;
             margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        body.dark .card {
+            background: #2d2d2d;
+            border-color: #404040;
         }
 
         h1 {
@@ -36,12 +47,22 @@
             margin-bottom: 8px;
             font-weight: 600;
             font-size: 24px;
+            transition: color 0.3s;
+        }
+
+        body.dark h1 {
+            color: #f0f0f0;
         }
 
         .subtitle {
             color: #657786;
             margin-bottom: 30px;
             font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        body.dark .subtitle {
+            color: #a0a0a0;
         }
 
         .form-group {
@@ -54,6 +75,11 @@
             color: #14171a;
             font-weight: 500;
             font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        body.dark label {
+            color: #d0d0d0;
         }
 
         input, textarea {
@@ -62,7 +88,13 @@
             border: 1px solid #ccd6dd;
             border-radius: 4px;
             font-size: 14px;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
+        }
+
+        body.dark input, body.dark textarea {
+            background: #1a1a1a;
+            border-color: #404040;
+            color: #f0f0f0;
         }
 
         input:focus, textarea:focus {
@@ -120,6 +152,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.3s;
+        }
+
+        body.dark .reminder-item {
+            background: #1a1a1a;
         }
 
         .reminder-info {
@@ -136,6 +173,11 @@
         .reminder-message {
             color: #14171a;
             font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        body.dark .reminder-message {
+            color: #d0d0d0;
         }
 
         .qr-section {
@@ -162,12 +204,22 @@
             padding: 12px 14px;
             border-radius: 4px;
             margin: 20px 0;
+            transition: all 0.3s;
+        }
+
+        body.dark .info-box {
+            background: #1a3a3a;
         }
 
         .info-box p {
             color: #14171a;
             margin: 0;
             font-size: 13px;
+            transition: color 0.3s;
+        }
+
+        body.dark .info-box p {
+            color: #d0d0d0;
         }
 
         .lang-buttons {
@@ -188,14 +240,29 @@
             transition: all 0.2s;
         }
 
+        body.dark .lang-btn {
+            background: #1a1a1a;
+            border-color: #404040;
+            color: #d0d0d0;
+        }
+
         .lang-btn:hover {
             background: #f5f8fa;
+        }
+
+        body.dark .lang-btn:hover {
+            background: #404040;
         }
 
         .helper-text {
             font-size: 12px;
             color: #999;
             margin-top: 5px;
+            transition: color 0.3s;
+        }
+
+        body.dark .helper-text {
+            color: #808080;
         }
 
         select {
@@ -204,8 +271,14 @@
             border: 1px solid #ccd6dd;
             border-radius: 4px;
             font-size: 14px;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
             background: white;
+        }
+
+        body.dark select {
+            background: #1a1a1a;
+            border-color: #404040;
+            color: #f0f0f0;
         }
 
         select:focus {
@@ -223,6 +296,30 @@
             margin-left: 6px;
             font-weight: 500;
         }
+
+        .dark-mode-toggle {
+            padding: 6px 12px;
+            border: 1px solid #ccd6dd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            background: white;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        body.dark .dark-mode-toggle {
+            background: #1a1a1a;
+            border-color: #404040;
+        }
+
+        .dark-mode-toggle:hover {
+            background: #f5f8fa;
+        }
+
+        body.dark .dark-mode-toggle:hover {
+            background: #404040;
+        }
     </style>
 </head>
 <body>
@@ -231,6 +328,7 @@
             <div class="lang-buttons">
                 <button class="lang-btn" onclick="switchLanguage('en')" style="background: #0084b4; color: white; border-color: #0084b4;">English</button>
                 <button class="lang-btn" onclick="switchLanguage('fi')">Suomi</button>
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeToggle">🌙</button>
             </div>
 
             <h1 id="pageTitle">Patient Care Reminders</h1>
@@ -295,6 +393,13 @@
     <script>
         let reminders = [];
         let currentLanguage = 'en';
+        let darkMode = localStorage.getItem('darkMode') === 'true';
+
+        // Apply saved dark mode preference on load
+        if (darkMode) {
+            document.body.classList.add('dark');
+            document.getElementById('darkModeToggle').textContent = '☀️';
+        }
 
         const translations = {
             en: {
@@ -318,7 +423,7 @@
                 endDateHelper: 'Leave empty for single reminder',
                 addReminder: '+ Add Reminder',
                 generateBtn: 'Generate QR Code for Mobile App',
-                infoText: '📱 Patients will scan the QR code with the mobile app to receive notifications',
+                infoText: 'Patients will scan the QR code with the mobile app to receive notifications',
                 qrTitle: 'QR Code Generated',
                 qrSubtitle: 'Patient scans this with the Care Reminders mobile app',
                 createAnother: 'Create Another Patient',
@@ -352,7 +457,7 @@
                 endDateHelper: 'Jätä tyhjäksi yhdelle muistutukselle',
                 addReminder: '+ Lisää Muistutus',
                 generateBtn: 'Luo QR-koodi Mobiilisovellukseen',
-                infoText: '📱 Potilaat skannaavat QR-koodin mobiilisovelluksella saadakseen ilmoitukset',
+                infoText: 'Potilaat skannaavat QR-koodin mobiilisovelluksella saadakseen ilmoitukset',
                 qrTitle: 'QR-koodi Luotu',
                 qrSubtitle: 'Potilas skannaa tämän Care Reminders -sovelluksella',
                 createAnother: 'Luo Toinen Potilas',
@@ -371,15 +476,23 @@
             return translations[currentLanguage][key] || key;
         }
 
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            document.body.classList.toggle('dark');
+            document.getElementById('darkModeToggle').textContent = darkMode ? '☀️' : '🌙';
+            localStorage.setItem('darkMode', darkMode);
+        }
+
         function switchLanguage(lang) {
             currentLanguage = lang;
             updateUILanguage();
             updateRemindersList();
 
+            const isDark = document.body.classList.contains('dark');
             document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.style.background = 'white';
-                btn.style.color = '#14171a';
-                btn.style.borderColor = '#ccd6dd';
+                btn.style.background = isDark ? '#1a1a1a' : 'white';
+                btn.style.color = isDark ? '#d0d0d0' : '#14171a';
+                btn.style.borderColor = isDark ? '#404040' : '#ccd6dd';
             });
             const activeBtn = document.querySelector(`[onclick="switchLanguage('${lang}')"]`);
             activeBtn.style.background = '#0084b4';
