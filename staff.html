@@ -165,45 +165,118 @@
             margin: 0;
             font-size: 14px;
         }
+
+        .lang-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .lang-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            background: white;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .repeat-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="staffSection" class="card">
-            <h1>Patient Care Reminders</h1>
-            <p class="subtitle">Create medication and care reminders for patients</p>
+            <div class="lang-buttons">
+                <button class="lang-btn" onclick="switchLanguage('en')" style="background: white; color: #667eea;">English</button>
+                <button class="lang-btn" onclick="switchLanguage('fi')">Suomi</button>
+            </div>
+
+            <h1 id="pageTitle">Patient Care Reminders</h1>
+            <p class="subtitle" id="pageSubtitle">Create medication and care reminders for patients</p>
 
             <div class="form-group">
-                <label>Patient Name</label>
+                <label id="labelPatientName">Patient Name</label>
                 <input type="text" id="patientName" placeholder="Enter patient name">
             </div>
 
             <div class="form-group">
-                <label>Reminder Message</label>
+                <label id="labelReminderMessage">Reminder Message</label>
                 <textarea id="reminderMessage" placeholder="E.g., Take blood pressure medication"></textarea>
             </div>
 
             <div class="form-group">
-                <label>Schedule Date & Time</label>
+                <label id="labelScheduleDateTime">Schedule Date & Time</label>
                 <input type="datetime-local" id="reminderTime">
             </div>
 
-            <button class="btn btn-small btn-secondary" onclick="addReminder()">+ Add Reminder</button>
+            <div class="form-group">
+                <label id="labelRepeatType">Repeat</label>
+                <select id="repeatType">
+                    <option value="none">None</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label id="labelEndDate">End Date (Optional)</label>
+                <input type="date" id="endDate">
+                <p class="helper-text" id="endDateHelper">Leave empty for single reminder</p>
+            </div>
+
+            <button class="btn btn-small btn-secondary" onclick="addReminder()" id="addReminderBtn">+ Add Reminder</button>
 
             <div id="remindersList" class="reminder-list"></div>
 
             <button class="btn" onclick="generateQR()" id="generateBtn" style="display:none;">Generate QR Code for Mobile App</button>
 
             <div class="info-box">
-                <p>📱 Patients will scan the QR code with the mobile app to receive notifications</p>
+                <p id="infoText">📱 Patients will scan the QR code with the mobile app to receive notifications</p>
             </div>
         </div>
 
         <div id="qrSection" class="card qr-section">
-            <h2>QR Code Generated</h2>
-            <p class="subtitle">Patient scans this with the Care Reminders mobile app</p>
+            <h2 id="qrTitle">QR Code Generated</h2>
+            <p class="subtitle" id="qrSubtitle">Patient scans this with the Care Reminders mobile app</p>
             <div id="qrCanvas"></div>
-            <button class="btn btn-secondary" onclick="resetForm()">Create Another Patient</button>
+            <button class="btn btn-secondary" onclick="resetForm()" id="createAnotherBtn">Create Another Patient</button>
         </div>
     </div>
 
@@ -211,24 +284,143 @@
 
     <script>
         let reminders = [];
+        let currentLanguage = 'en';
+
+        const translations = {
+            en: {
+                title: 'Patient Care Reminders',
+                subtitle: 'Create medication and care reminders for patients',
+                patientName: 'Patient Name',
+                patientNamePlaceholder: 'Enter patient name',
+                reminderMessage: 'Reminder Message',
+                reminderMessagePlaceholder: 'E.g., Take blood pressure medication',
+                scheduleDateTime: 'Schedule Date & Time',
+                repeatType: 'Repeat',
+                repeatNone: 'None',
+                repeatDaily: 'Daily',
+                repeatWeekly: 'Weekly',
+                endDate: 'End Date (Optional)',
+                endDateHelper: 'Leave empty for single reminder',
+                addReminder: '+ Add Reminder',
+                generateBtn: 'Generate QR Code for Mobile App',
+                infoText: '📱 Patients will scan the QR code with the mobile app to receive notifications',
+                qrTitle: 'QR Code Generated',
+                qrSubtitle: 'Patient scans this with the Care Reminders mobile app',
+                createAnother: 'Create Another Patient',
+                remove: 'Remove',
+                fillBoth: 'Please fill in both message and time',
+                enterName: 'Please enter patient name',
+                addOneReminder: 'Please add at least one reminder',
+                finnish: 'Suomi',
+                english: 'English',
+                repeats: 'Repeats',
+                until: 'until'
+            },
+            fi: {
+                title: 'Potilaan Hoitomuistutukset',
+                subtitle: 'Luo lääke- ja hoitomuistutuksia potilaille',
+                patientName: 'Potilaan Nimi',
+                patientNamePlaceholder: 'Syötä potilaan nimi',
+                reminderMessage: 'Muistutusviesti',
+                reminderMessagePlaceholder: 'Esim., Ota verenpainelääke',
+                scheduleDateTime: 'Ajoita Päivämäärä ja Aika',
+                repeatType: 'Toisto',
+                repeatNone: 'Ei toistoa',
+                repeatDaily: 'Päivittäin',
+                repeatWeekly: 'Viikoittain',
+                endDate: 'Päättymispäivä (Valinnainen)',
+                endDateHelper: 'Jätä tyhjäksi yhdelle muistutukselle',
+                addReminder: '+ Lisää Muistutus',
+                generateBtn: 'Luo QR-koodi Mobiilisovellukseen',
+                infoText: '📱 Potilaat skannaavat QR-koodin mobiilisovelluksella saadakseen ilmoitukset',
+                qrTitle: 'QR-koodi Luotu',
+                qrSubtitle: 'Potilas skannaa tämän Care Reminders -sovelluksella',
+                createAnother: 'Luo Toinen Potilas',
+                remove: 'Poista',
+                fillBoth: 'Täytä sekä viesti että aika',
+                enterName: 'Syötä potilaan nimi',
+                addOneReminder: 'Lisää vähintään yksi muistutus',
+                finnish: 'Suomi',
+                english: 'English',
+                repeats: 'Toistuu',
+                until: 'saakka'
+            }
+        };
+
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
+
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            updateUILanguage();
+            updateRemindersList();
+
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.style.background = 'rgba(255,255,255,0.2)';
+                btn.style.color = 'rgba(255,255,255,0.8)';
+            });
+            document.querySelector(`[onclick="switchLanguage('${lang}')"]`).style.background = 'white';
+            document.querySelector(`[onclick="switchLanguage('${lang}')"]`).style.color = '#667eea';
+        }
+
+        function updateUILanguage() {
+            document.getElementById('pageTitle').textContent = t('title');
+            document.getElementById('pageSubtitle').textContent = t('subtitle');
+            document.getElementById('labelPatientName').textContent = t('patientName');
+            document.getElementById('patientName').placeholder = t('patientNamePlaceholder');
+            document.getElementById('labelReminderMessage').textContent = t('reminderMessage');
+            document.getElementById('reminderMessage').placeholder = t('reminderMessagePlaceholder');
+            document.getElementById('labelScheduleDateTime').textContent = t('scheduleDateTime');
+            document.getElementById('labelRepeatType').textContent = t('repeatType');
+            document.getElementById('labelEndDate').textContent = t('endDate');
+            document.getElementById('endDateHelper').textContent = t('endDateHelper');
+            document.getElementById('addReminderBtn').innerHTML = t('addReminder');
+            document.getElementById('generateBtn').textContent = t('generateBtn');
+            document.getElementById('infoText').innerHTML = t('infoText');
+            document.getElementById('qrTitle').textContent = t('qrTitle');
+            document.getElementById('qrSubtitle').textContent = t('qrSubtitle');
+            document.getElementById('createAnotherBtn').textContent = t('createAnother');
+
+            // Update repeat dropdown
+            const repeatSelect = document.getElementById('repeatType');
+            repeatSelect.options[0].text = t('repeatNone');
+            repeatSelect.options[1].text = t('repeatDaily');
+            repeatSelect.options[2].text = t('repeatWeekly');
+        }
 
         function addReminder() {
             const message = document.getElementById('reminderMessage').value.trim();
             const time = document.getElementById('reminderTime').value;
+            const repeatType = document.getElementById('repeatType').value;
+            const endDate = document.getElementById('endDate').value;
 
             if (!message || !time) {
-                alert('Please fill in both message and time');
+                alert(t('fillBoth'));
                 return;
             }
 
-            reminders.push({
+            const reminder = {
                 id: Date.now(),
                 message,
-                time
-            });
+                time,
+                notified: false
+            };
+
+            if (repeatType !== 'none') {
+                reminder.repeatType = repeatType;
+            }
+
+            if (endDate) {
+                reminder.endDate = endDate;
+            }
+
+            reminders.push(reminder);
 
             document.getElementById('reminderMessage').value = '';
             document.getElementById('reminderTime').value = '';
+            document.getElementById('repeatType').value = 'none';
+            document.getElementById('endDate').value = '';
 
             updateRemindersList();
             document.getElementById('generateBtn').style.display = 'block';
