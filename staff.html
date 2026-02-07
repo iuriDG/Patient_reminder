@@ -251,6 +251,11 @@
                 <select id="repeatType">
                     <option value="none">None</option>
                     <option value="daily">Daily</option>
+                    <option value="every2days">Every 2 Days</option>
+                    <option value="every3days">Every 3 Days</option>
+                    <option value="every4days">Every 4 Days</option>
+                    <option value="every5days">Every 5 Days</option>
+                    <option value="every6days">Every 6 Days</option>
                     <option value="weekly">Weekly</option>
                 </select>
             </div>
@@ -298,6 +303,11 @@
                 repeatType: 'Repeat',
                 repeatNone: 'None',
                 repeatDaily: 'Daily',
+                repeatEvery2days: 'Every 2 Days',
+                repeatEvery3days: 'Every 3 Days',
+                repeatEvery4days: 'Every 4 Days',
+                repeatEvery5days: 'Every 5 Days',
+                repeatEvery6days: 'Every 6 Days',
                 repeatWeekly: 'Weekly',
                 endDate: 'End Date (Optional)',
                 endDateHelper: 'Leave empty for single reminder',
@@ -327,6 +337,11 @@
                 repeatType: 'Toisto',
                 repeatNone: 'Ei toistoa',
                 repeatDaily: 'Päivittäin',
+                repeatEvery2days: 'Joka 2. päivä',
+                repeatEvery3days: 'Joka 3. päivä',
+                repeatEvery4days: 'Joka 4. päivä',
+                repeatEvery5days: 'Joka 5. päivä',
+                repeatEvery6days: 'Joka 6. päivä',
                 repeatWeekly: 'Viikoittain',
                 endDate: 'Päättymispäivä (Valinnainen)',
                 endDateHelper: 'Jätä tyhjäksi yhdelle muistutukselle',
@@ -386,7 +401,12 @@
             const repeatSelect = document.getElementById('repeatType');
             repeatSelect.options[0].text = t('repeatNone');
             repeatSelect.options[1].text = t('repeatDaily');
-            repeatSelect.options[2].text = t('repeatWeekly');
+            repeatSelect.options[2].text = t('repeatEvery2days');
+            repeatSelect.options[3].text = t('repeatEvery3days');
+            repeatSelect.options[4].text = t('repeatEvery4days');
+            repeatSelect.options[5].text = t('repeatEvery5days');
+            repeatSelect.options[6].text = t('repeatEvery6days');
+            repeatSelect.options[7].text = t('repeatWeekly');
         }
 
         function addReminder() {
