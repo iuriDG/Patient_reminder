@@ -1,206 +1,105 @@
-# 🏥 Care Reminders - Complete System
+# Care Reminders
 
-A two-part patient medication reminder system designed for elderly and Alzheimer's patients. Healthcare staff create reminders via web interface, patients receive notifications via mobile app.
+A medication reminder system for elderly and Alzheimer's patients. Healthcare staff create reminders via web interface, patients receive notifications on their mobile device.
 
----
+## What It Is
 
-## 🎯 System Overview
+Two-part system:
+1. **Staff Web Interface** - Create reminders and generate QR codes
+2. **Patient Mobile App** - iOS/Android app that scans QR codes and sends notifications
 
-### Two Components:
+## How It Works
 
-1. **Staff Web Interface** (`staff.html`) - Create reminders & generate QR codes
-2. **Patient Mobile App** (`mobile-app/`) - React Native app for iOS & Android
+1. Healthcare staff opens the web interface
+2. Creates reminder schedule for a patient
+3. Generates a QR code
+4. Patient scans QR code with mobile app
+5. Patient receives notification alerts at scheduled times
 
-### How It Works:
+All data stays on the patient's device. No cloud storage, no servers, HIPAA compliant.
 
+## Staff Interface Setup
+
+No installation needed. Access it two ways:
+
+**Online (Recommended):**
 ```
-Staff creates reminders → Generates QR code → Patient scans → Receives notifications
+https://iuridg.github.io/Patient_reminder/staff.html
 ```
-
----
-
-## 🚀 Quick Start
-
-### For Staff (Web Interface)
-
-No installation needed! Just open the file:
-
-```bash
-# Option 1: Open locally
-open staff.html
-
-# Option 2: Use GitHub Pages (already deployed)
-# https://iuridg.github.io/Patient_reminder/staff.html
-```
-
-### For Patients (Mobile App)
-
-```bash
-# 1. Navigate to mobile app folder
-cd mobile-app
-
-# 2. Install dependencies
-npm install
-
-# 3. Start development server
-npx expo start
-
-# 4. Scan QR with Expo Go app (iOS/Android)
-```
-
----
-
-## 📁 Project Structure
-
-```
-Patient_reminder/
-├── staff.html              # ✅ Staff interface - Create reminders
-├── index.html              # Old PWA version (archived)
-├── old_pwa_files/          # Archived PWA files
-│   ├── manifest.json
-│   └── sw.js
-├── mobile-app/             # 📱 Patient mobile app
-│   ├── App.tsx             # Main app code
-│   ├── types.ts            # TypeScript types
-│   ├── app.json            # Expo config
-│   ├── package.json        # Dependencies
-│   ├── README.md           # Mobile app documentation
-│   └── SETUP_GUIDE.md      # Deployment guide
-└── README.md               # This file
-```
-
----
-
-## 💡 Complete Workflow
-
-### Step 1: Staff Creates Reminders
-
-1. Open `staff.html` in browser
-2. Enter patient name
-3. Add reminders with times:
-   - "Take blood pressure medication"
-   - "Drink 8oz water"
-   - "Call Dr. Smith: 555-1234"
-4. Click "Generate QR Code"
-
-### Step 2: Patient Receives Reminders
-
-1. Patient opens Care Reminders app
-2. Taps "Scan QR Code"
-3. Scans QR code from staff
-4. App saves to SQLite database
-5. Schedules local notifications
-6. Patient receives alerts at scheduled times
-7. When done: tap "Delete All Reminders"
-
----
-
-## 🏗️ Staff Interface
-
-### Features
-
-- ✅ Simple web form - no installation
-- ✅ Create multiple reminders
-- ✅ Generate QR codes
-- ✅ Works offline
-- ✅ No database needed
-- ✅ HIPAA compliant (no data stored)
-
-### Usage
 
 **Local:**
 ```bash
 open staff.html
 ```
 
-**Online:**
+### How to Use:
+1. Enter patient name
+2. Add reminders with times (e.g., "Take blood pressure medication" at 9:00 AM)
+3. Click "Generate QR Code"
+4. Patient scans the QR code with mobile app
+
+**Tip:** Keep messages simple and clear. Limit to 5-15 reminders per patient.
+
+## Mobile App Setup
+
+### For iOS (Current Working Setup):
+
+**Prerequisites:**
+- Mac with Xcode installed
+- iPhone with cable
+- Apple Developer account (free Personal Team works)
+
+**Installation:**
+```bash
+cd mobile-app
+npm install
 ```
-https://iuridg.github.io/Patient_reminder/staff.html
-```
 
-### Best Practices
+**Run on iPhone:**
+1. Open Xcode project:
+   ```bash
+   open ios/carereminders.xcodeproj
+   ```
+2. Connect iPhone via cable
+3. Select your iPhone as target device in Xcode
+4. Click Run (Command+R)
+5. App installs on your iPhone
 
-✅ **Good reminder messages:**
-- "Take blue pill (blood pressure)"
-- "Use eye drops - both eyes"
-- "Drink water - 8oz glass"
+**Important:** If you rebuild the project, you may need to set `ENABLE_USER_SCRIPT_SANDBOXING = NO` in the Xcode project settings (both Debug and Release configurations).
 
-❌ **Avoid:**
-- "Lisinopril 10mg PO daily"
-- Complex medical terminology
-
-**Limit:** 5-15 reminders per patient (QR code size limit)
-
----
-
-## 📱 Mobile App
-
-### Features
-
-- ✅ QR code scanning
-- ✅ Local SQLite database
-- ✅ Push notifications with sound
-- ✅ Simple UI for elderly patients
-- ✅ One-button data deletion
-- ✅ Works offline
-- ✅ iOS & Android support
-
-### Installation
+### For Android:
 
 ```bash
 cd mobile-app
 npm install
-npx expo start
+npx expo run:android
 ```
 
-**Test on phone:**
-1. Install "Expo Go" from App Store/Play Store
-2. Scan QR code from terminal
-3. App loads on your phone!
+## Using the Mobile App
 
-### Building for Production
+1. Open app on patient's phone
+2. Tap "Scan QR Code"
+3. Scan the QR code from staff interface
+4. Grant notification permissions when prompted
+5. App saves reminders and schedules notifications
+6. Patient receives alerts at scheduled times
+7. When finished, tap "Delete All Reminders"
 
-```bash
-# Install EAS CLI
-npm install -g eas-cli
+**Note:** Patient can close the app and turn off their phone. Notifications will still fire at scheduled times.
 
-# Build for iOS
-eas build --platform ios
+## Privacy & Security
 
-# Build for Android
-eas build --platform android
-```
+- No cloud storage - all data stays on patient's device
+- No servers - no data transmission
+- No tracking or analytics
+- Easy deletion - one button wipes all data
+- HIPAA compliant
 
-See [mobile-app/README.md](mobile-app/README.md) for complete build instructions.
-
----
-
-## 🔐 Privacy & Security
-
-### HIPAA Compliant
-
-✅ **No cloud storage** - All data local to patient device
-✅ **No servers** - No data transmission
-✅ **No analytics** - No tracking
-✅ **Easy deletion** - One-button wipe
-
-### Data Flow
-
-1. **Staff Interface** → Creates data → Embeds in QR code
-2. **QR Code** → Contains all reminder data (base64 encoded)
-3. **Mobile App** → Scans QR → Saves to local SQLite
-4. **Patient Device** → Local notifications at scheduled times
-5. **Patient** → Deletes all data when done
-
-**No PHI leaves the patient's device!**
-
----
-
-## 🚀 Deployment
+## Deployment
 
 ### Staff Interface (GitHub Pages)
 
-Already deployed at:
+Already live at:
 ```
 https://iuridg.github.io/Patient_reminder/staff.html
 ```
@@ -212,159 +111,69 @@ git commit -m "Update staff interface"
 git push origin main
 ```
 
-Changes appear in ~1 minute.
+Changes appear within 1 minute.
 
 ### Mobile App (App Stores)
 
 **iOS App Store:**
-- Need: Apple Developer Account ($99/year)
-- Build: `eas build --platform ios`
+- Requires Apple Developer account ($99/year)
+- Build with EAS: `eas build --platform ios`
 - Submit via App Store Connect
 
 **Google Play Store:**
-- Need: Google Play Developer Account ($25 one-time)
-- Build: `eas build --platform android`
+- Requires Google Play Developer account ($25 one-time)
+- Build with EAS: `eas build --platform android`
 - Submit via Play Console
 
-See [mobile-app/README.md](mobile-app/README.md) for detailed steps.
+## Project Structure
 
----
-
-## 🔧 Development
-
-### Prerequisites
-
-```bash
-# Check Node.js (need v18+)
-node --version
-
-# If not installed (macOS):
-brew install node
+```
+Patient_reminder/
+├── staff.html           # Staff interface
+├── mobile-app/          # Patient mobile app
+│   ├── App.tsx          # Main app code
+│   ├── types.ts         # TypeScript types
+│   ├── app.json         # Expo config
+│   └── ios/             # iOS native project
+└── README.md            # This file
 ```
 
-### Staff Interface
+## Troubleshooting
 
-No setup needed - just edit `staff.html` and open in browser.
+**Staff Interface:**
+- QR won't generate: Fill in patient name and add at least one reminder
+- "Too much data": Reduce number of reminders or shorten messages
 
-### Mobile App
+**Mobile App:**
+- Won't scan QR: Check camera permission in phone settings
+- No notifications: Check notification permission in phone settings
+- Build errors in Xcode: Set `ENABLE_USER_SCRIPT_SANDBOXING = NO` in project settings
 
-```bash
-cd mobile-app
-npm install
-npx expo start
-```
+## Requirements
 
----
+- Node.js 18 or higher
+- For iOS: Mac with Xcode
+- For Android: Android Studio or physical Android device
 
-## 💊 Tips for Alzheimer's Patients
-
-### Setup
-
-1. **Pre-install app** before patient goes home
-2. **Test together** - scan a dummy QR code
-3. **Large, clear text** - keep messages simple
-4. **Familiar sounds** - use default notification sound
-5. **Show patient** how to read notifications
-
-### Training Staff
-
-**5-Minute Tutorial:**
-1. Open `staff.html`
-2. Create test reminder (2 minutes from now)
-3. Generate QR code
-4. Scan with mobile app
-5. Wait for notification
-
-**Staff should know:**
-- How to create reminders
-- How to generate QR codes
-- How to help patient scan
-- When to regenerate QR
-
----
-
-## 🐛 Troubleshooting
-
-### Staff Interface
-
-**QR won't generate:**
-- Ensure patient name is filled
-- Add at least one reminder
-
-**"Too much data" error:**
-- Reduce number of reminders (max ~15)
-- Shorten reminder messages
-
-### Mobile App
-
-**Won't scan QR:**
-- Check camera permission
-- Ensure good lighting
-- QR must be from `staff.html`
-
-**No notifications:**
-- iOS: Only works on physical devices
-- Check notification permissions in Settings
-- App must be granted permission
-
-**App won't build:**
-```bash
-cd mobile-app
-rm -rf node_modules
-npm install
-npx expo start --clear
-```
-
----
-
-## 📚 Documentation
-
-- **Staff Interface:** Use `staff.html` (this README)
-- **Mobile App:** [mobile-app/README.md](mobile-app/README.md)
-- **Deployment:** [mobile-app/SETUP_GUIDE.md](mobile-app/SETUP_GUIDE.md)
-
----
-
-## 🎉 Quick Reference
+## Quick Commands
 
 **Test staff interface:**
 ```bash
 open staff.html
 ```
 
-**Test mobile app:**
+**Run mobile app (development):**
 ```bash
 cd mobile-app
 npx expo start
 ```
 
-**Deploy staff interface:**
-```bash
-git push origin main
-# Live at: https://iuridg.github.io/Patient_reminder/staff.html
-```
-
-**Build mobile app:**
+**Build for iOS (in Xcode):**
 ```bash
 cd mobile-app
-eas build --platform ios
-eas build --platform android
+open ios/carereminders.xcodeproj
 ```
 
----
-
-## 🔗 Links
-
-- **Staff Interface (Live):** https://iuridg.github.io/Patient_reminder/staff.html
-- **GitHub Repo:** https://github.com/iuriDG/Patient_reminder
-- **Mobile App Docs:** [mobile-app/README.md](mobile-app/README.md)
-
----
-
-## 📄 License
+## License
 
 MIT
-
----
-
-**Built with ❤️ for better patient care**
