@@ -305,7 +305,7 @@ export default function App() {
         if (reminder.repeatType === 'daily') {
           await Notifications.scheduleNotificationAsync({
             content: {
-              title: `${t.notificationTitle} 💊`,
+              title: `${t.notificationTitle}`,
               body: reminder.message,
               sound: true,
             },
@@ -319,7 +319,7 @@ export default function App() {
         } else if (reminder.repeatType === 'weekly') {
           await Notifications.scheduleNotificationAsync({
             content: {
-              title: `${t.notificationTitle} 💊`,
+              title: `${t.notificationTitle}`,
               body: reminder.message,
               sound: true,
             },
